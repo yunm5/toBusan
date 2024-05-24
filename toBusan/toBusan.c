@@ -22,20 +22,32 @@
 #define ACTION_PROVOKE 1
 #define ACTION_PULL 2
 
-int len, prob, stm;
+int len, prob, stm, c, m, z;
+int turn = 1;
+int a, b;
 void intro_len(void) {
 	while (1) {
 		printf("train length(15~50)>>");
 		scanf_s("%d", &len);
-		if (len <= LEN_MAX && len >= LEN_MIN) { exit(0); }
+		if (len <= LEN_MAX && len >= LEN_MIN) { break; }
 	}
+	c = len - 6;
 }
 void intro_prob(void) {
 	while (1) {
 		printf("percentile probability 'p'(10~90)>>");
 		scanf_s("%d", &prob);
-		if (prob >= PROB_MIN && prob <= PROB_MAX) { exit(0); }
+		if (prob >= PROB_MIN && prob <= PROB_MAX) { break; }
 	}
+	z = len - 3;
+}
+void intro_stm(void) {
+	while (1) {
+		printf("madongseok stamina(0~5)>>");
+		scanf_s("%d", &stm);
+		if (stm >= STM_MIN && stm <= STM_MAX) { break; }
+	}
+	m = len - 2;
 }
 void intro_train(void) {
 	if (len >= 15 && len <= 50) {
@@ -66,9 +78,6 @@ void intro_train(void) {
 		}
 	}
 }
-int turn = 1;
-int c, m, z;
-int a, b;
 void move(void) {
 	c = len - 6;
 	z = len - 3;
@@ -136,9 +145,12 @@ void print_move(void) {
 	++turn;
 }
 int main(void) {
-
+	intro_len();
+	intro_prob();
+	intro_stm();
+	train();
+	move();
+	train();
+	print_move();
 	return 0;
-}
-int main() {
-	int test;
 }
