@@ -24,7 +24,7 @@
 
 int len, prob, stm, c, m, z, c_aggro, m_aggro;
 int turn = 1;
-int c_prob,z_prob, m_prob, m_act;
+int c_prob,z_prob, m_prob,m_m, m_act;
 void intro_len(void) {
 	while (1) {
 		printf("train length(15~50)>>");
@@ -56,10 +56,14 @@ void cz_move(void) {
 	c_prob = rand() % 100;
 	if (c_prob <= 100 - prob) {
 		--c;// 시민 움직이고 위치 저장
-		++c_aggro;
+		if (c_aggro <= AGGRO_MAX && c_aggro >= AGGRO_MIN) {
+			++c_aggro;
+		}
 	}
 	else {
-		--c_aggro;
+		if (c_aggro <= AGGRO_MAX && c_aggro >= AGGRO_MIN) {
+			--c_aggro;
+		}
 	}
 	z_prob = rand() % 100;
 	if (turn % 2 == 1) {
@@ -122,52 +126,120 @@ void print_move_cz(void) {
 }
 void m_move(void){
 	m = len - 2;
+	m_aggro = 0;
 	while(1){
 		printf("madongseok move(0:stay, 1:left)>>"); 
-		scanf_s("%d", &m_prob);
-		if (m_prob == 0||m_prob==1) { break; }
-	}
-	if (m_prob == 1) {
+		scanf_s("%d", &m_m);
+		if (m_m == 0 || m_m==1) { break; }
+	}printf("\n");
+	if (m_m == 1) {
 		--m;
-		++m_aggro;
+		if (m_aggro < AGGRO_MIN || m_aggro > AGGRO_MAX) {
+			if (m_aggro < AGGRO_MIN) { m_aggro = AGGRO_MIN; }
+			else { m_aggro = AGGRO_MAX; }
+		}
+		else { ++m_aggro; }
 	}
-	else { --m_aggro; }
+	else {
+		if (m_aggro < AGGRO_MIN || m_aggro > AGGRO_MAX) {
+			if (m_aggro < AGGRO_MIN) { m_aggro = AGGRO_MIN; }
+			else { m_aggro = AGGRO_MAX; }
+		}
+		else { --m_aggro; }
+	}
 }
 void m_action(void) {
-	priintf("madongseok action(0.rest, 1.provoke)>>");
-	scanf_s("%d", &m_act);
-	if (m_act == 0) { 
-		printf("madongseok rest...\n");
-		--m_aggro;
-		++stm;
-		printf("madongseok %d (aggro: %d -> %d, stamina: %d ->%d", m_aggro + 1, m_aggro, stm - 1, stm);
+	if (m == z + 1) {
+		while (1) {
+			printf("madongseok action(0.rest, 1.provoke, 2. pull)>>");
+			scanf_s("%d", &m_act);
+			if (m_act == 0 || m_act == 1 || m_act == 2) { break; }
+		}
+		printf("\n");
+		if (m_act == 0) {
+			printf("madongseok rest...\n");
+			--m_aggro;
+			++stm;
+			printf("madongseok %d (aggro: %d -> %d, stamina: %d ->%d)\n", m, m_aggro + 1, m_aggro, stm - 1, stm);
+		}
+		else if (m_act == 1) {
+			printf("madongseok provoked zombie...\n");
+			printf("magongseok: %d (aggro: %d -> %d, stamina: %d\n", m, m_aggro, AGGRO_MAX, stm);
+			m_aggro = AGGRO_MAX;
+		}
+		else {
+			m_prob = rand() % 100;
+			m_aggro += 2;
+			--stm;
+			if (m_prob <= 100 - prob) {
+				printf("madongseok pulled zombie... Next turn, it can't move\n");
+				printf("madongseok: %d(aggro: %d -> %d, stamina: %d -> %d)\n", m, m_aggro - 2, m_aggro, stm + 1, stm);
+			}
+			else {
+				printf("madongseok failed to pull zombie\n");
+				printf("madongseok: %d(aggro: %d -> %d, stamina: %d -> %d)\n", m, m_aggro - 2, m_aggro, stm + 1, stm);
+			}
+		}
+	}
+	else {
+		if (m_act == 0) {
+			printf("madongseok rest...\n");
+			--m_aggro;
+			++stm;
+			printf("madongseok %d (aggro: %d -> %d, stamina: %d ->%d)\n", m, m_aggro + 1, m_aggro, stm - 1, stm);
+		}
+		else if (m_act == 1) {
+			printf("madongseok provoked zombie...\n");
+			printf("magongseok: %d (aggro: %d -> %d, stamina: %d\n", m, m_aggro, AGGRO_MAX, stm);
+			m_aggro = AGGRO_MAX;
+		}
+		else {
+			m_prob = rand() % 100;
+			m_aggro += 2;
+			--stm;
+			if (m_prob <= 100 - prob) {
+				printf("madongseok pulled zombie... Next turn, it can't move\n");
+				printf("madongseok: %d(aggro: %d -> %d, stamina: %d -> %d)\n", m, m_aggro - 2, m_aggro, stm + 1, stm);
+			}
+			else {
+				printf("madongseok failed to pull zombie\n");
+				printf("madongseok: %d(aggro: %d -> %d, stamina: %d -> %d)\n", m, m_aggro - 2, m_aggro, stm + 1, stm);
+			}
+		}
 	}
 }
 void print_m_move(void) {
-	if (m_prob == 0) {
-		printf("madongseok: stay %d(aggro: %d -> %d, stamina: %d", m, m_aggro,m_aggro + 1, stm);
+	if (m_aggro == 0) {
+		printf("madongseok: stay %d(aggro: %d -> %d, stamina: %d)\n", m, m_aggro+1, m_aggro, stm);
 	}
+	else{ printf("madongseok: stay %d(aggro: %d -> %d, stamina: %d)\n", m, m_aggro, m_aggro+1, stm); }
 }
 void action(void) {
-	if (c < z) { printf("citizen does nothing.");	}
+	if (c < z) { printf("citizen does nothing.\n");	}
 	if (z > c || z < m) {	printf("zombie attcked nobody.\n");	}
-	else if (z == c + 1) {printf ("GAME OVER!citizen dead..."); }
+	else if (z == c + 1) {printf ("GAME OVER!citizen dead...\n"); }
 
 }
 void win(void) {
 	if (c == 1) {
-		printf(" YOU WIN!");
+		printf(" YOU WIN!\n");
 	}
 }
 int main(void) {
 	intro_len();
-	intro_prob();
 	intro_stm();
+	intro_prob();
 	train();//초기 기차
 	cz_move();
 	train();//움직인 기차1
 	print_move_cz();
 	m_move();
+	train();
+	print_m_move();
+	printf("\n");
+	action();
+	m_action();
+	printf("\n");
 	train();
 	return 0;
 }
