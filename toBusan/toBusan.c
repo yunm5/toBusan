@@ -22,9 +22,11 @@
 #define ACTION_PROVOKE 1
 #define ACTION_PULL 2
 
-int len, prob, stm, c, m, z, c_aggro, m_aggro;
+int len, prob, stm, c, m, z;
+int c_aggro, m_aggro = 1;
 int turn = 1;
 int c_prob,z_prob, m_prob,m_m, m_act;
+//1-1 부산헹1 코드들 함수로 정리 유효한 값이 입력될 때까지 입력받는걸로 수정
 void intro_len(void) {
 	while (1) {
 		printf("train length(15~50)>>");
@@ -40,37 +42,6 @@ void intro_prob(void) {
 		if (prob >= PROB_MIN && prob <= PROB_MAX) { break; }
 	}
 	z = len - 3;
-}
-void intro_stm(void) {
-	while (1) {
-		printf("madongseok stamina(0~5)>>");
-		scanf_s("%d", &stm);
-		if (stm >= STM_MIN && stm <= STM_MAX) { break; }
-	}
-	m = len - 2;
-}
-void cz_move(void) {
-	c = len - 6;
-	z = len - 3;
-	c_aggro = 0;
-	c_prob = rand() % 100;
-	if (c_prob <= 100 - prob) {
-		--c;// 시민 움직이고 위치 저장
-		if (c_aggro <= AGGRO_MAX && c_aggro >= AGGRO_MIN) {
-			++c_aggro;
-		}
-	}
-	else {
-		if (c_aggro <= AGGRO_MAX && c_aggro >= AGGRO_MIN) {
-			--c_aggro;
-		}
-	}
-	z_prob = rand() % 100;
-	if (turn % 2 == 1) {
-		if (z_prob <= prob) {
-			--z;//좀비 움직이고 위치 저장
-		}
-	}
 }
 void train(void) {
 	if (len >= 15 && len <= 50) {
@@ -124,13 +95,21 @@ void print_move_cz(void) {
 	printf("\n");
 	++turn;
 }
-void m_move(void){
+//1-2 마동석 체력 추가, 이동 코드
+void intro_stm(void) {
+	while (1) {
+		printf("madongseok stamina(0~5)>>");
+		scanf_s("%d", &stm);
+		if (stm >= STM_MIN && stm <= STM_MAX) { break; }
+	}
 	m = len - 2;
-	m_aggro = 0;
-	while(1){
-		printf("madongseok move(0:stay, 1:left)>>"); 
+}
+void m_move(void) {
+	m = len - 2;
+	while (1) {
+		printf("madongseok move(0:stay, 1:left)>>");
 		scanf_s("%d", &m_m);
-		if (m_m == 0 || m_m==1) { break; }
+		if (m_m == 0 || m_m == 1) { break; }
 	}printf("\n");
 	if (m_m == 1) {
 		--m;
@@ -145,8 +124,21 @@ void m_move(void){
 			if (m_aggro < AGGRO_MIN) { m_aggro = AGGRO_MIN; }
 			else { m_aggro = AGGRO_MAX; }
 		}
-		else { --m_aggro; }
+		--m_aggro;
 	}
+}
+void print_m_move(void) {
+	if (m_aggro == 0) {
+		printf("madongseok: stay %d(aggro: %d -> %d, stamina: %d)\n", m, m_aggro + 1, m_aggro, stm);
+	}
+	else { printf("madongseok: stay %d(aggro: %d -> %d, stamina: %d)\n", m, m_aggro, m_aggro + 1, stm); }
+}
+//1-3 이동 함수
+void action(void) {
+	if (c < z) { printf("citizen does nothing.\n"); }
+	if (z > c || z < m) { printf("zombie attcked nobody.\n"); }
+	else if (z == c + 1) { printf("GAME OVER!citizen dead...\n"); }
+
 }
 void m_action(void) {
 	if (m == z + 1) {
@@ -207,39 +199,4 @@ void m_action(void) {
 			}
 		}
 	}
-}
-void print_m_move(void) {
-	if (m_aggro == 0) {
-		printf("madongseok: stay %d(aggro: %d -> %d, stamina: %d)\n", m, m_aggro+1, m_aggro, stm);
-	}
-	else{ printf("madongseok: stay %d(aggro: %d -> %d, stamina: %d)\n", m, m_aggro, m_aggro+1, stm); }
-}
-void action(void) {
-	if (c < z) { printf("citizen does nothing.\n");	}
-	if (z > c || z < m) {	printf("zombie attcked nobody.\n");	}
-	else if (z == c + 1) {printf ("GAME OVER!citizen dead...\n"); }
-
-}
-void win(void) {
-	if (c == 1) {
-		printf(" YOU WIN!\n");
-	}
-}
-int main(void) {
-	intro_len();
-	intro_stm();
-	intro_prob();
-	train();//초기 기차
-	cz_move();
-	train();//움직인 기차1
-	print_move_cz();
-	m_move();
-	train();
-	print_m_move();
-	printf("\n");
-	action();
-	m_action();
-	printf("\n");
-	train();
-	return 0;
 }
