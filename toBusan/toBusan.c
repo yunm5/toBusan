@@ -24,7 +24,7 @@
 
 int len, prob, stm, c, m, z;
 int c_aggro, m_aggro = 1;
-int turn = 1;
+int turn;
 int c_prob,z_prob, m_prob,m_m, m_act;
 //1-1 부산헹1 코드들 함수로 정리 유효한 값이 입력될 때까지 입력받는걸로 수정
 void intro_len(void) {
@@ -44,8 +44,8 @@ void intro_prob(void) {
 }
 void train(void) {
 	c = len - 6;
-	z = len - 3;
-	m = len - 2;
+	z = len - 2;
+	m = len - 3;
 	if (len >= 15 && len <= 50) {
 		for (int i = 0; i < len; i++) {
 			printf("#");
@@ -77,39 +77,56 @@ void train(void) {
 	printf("\n");
 }
 //1-2 시민, 좀비 움직임
-void c_move(void) {
+void cz_move(void) {
+	turn = 1;
 	c_prob = rand() % 100;
 	if (c_prob <= 100 - prob) {
 		--c;
 		++c_aggro;
 		if (c_aggro > AGGRO_MAX) { c_aggro = AGGRO_MAX; }
-		printf("citizen = %d -> %d(agrro: %d -> %d)\n", c + 1, c, c_aggro - 1, c_aggro);
 	}
 	else {
 		--c_aggro;
 		if (c_aggro < AGGRO_MIN) { c_aggro = AGGRO_MIN; }
+	}
+	if (turn % 2 == 1) {
+		if (m_act == 2) { z; }
+		if (c_aggro>m_aggro) {
+			--z;
+		}
+		else if (z == c + 1 || z == m - 1) {
+			z=z;
+		}
+		else  { 
+			++z;
+		}
+	}	
+	else { z == z; }
+	++turn;
+}
+void cz_move_print(void) {
+	if (c_prob <= 100 - prob) {
+		printf("citizen = %d -> %d(agrro: %d -> %d)\n", c + 1, c, c_aggro - 1, c_aggro);
+	}
+	else {
 		printf("citizen = stay %d(aggro: %d -> %d)\n", c, c_aggro + 1, c_aggro);
 	}
-}
-void z_move(void){
-	z_prob + rand() % 100;
 	if (turn % 2 == 1) {
-		if (z_prob <= prob) {
-			--z;
+		if (m_act == 2) { printf("zombie = stay %d (can't move)\n", z); }
+		if (c_aggro<m_aggro) {
 			printf("zombie = %d -> %d\n", z + 1, z);
 		}
-		else if (m_act == 2) {
-			printf("zombie = stay %d (can't move)\n", z);
+		else if (z == c + 1 || z == m - 1) {
+			printf("zombie = stay %d\n", z);
 		}
 		else {
-			printf("zombie = stay %d\n", z);
+			printf("zombie = %d -> %d\n", z - 1,z);
 		}
 	}
 	else {
 		printf("zombie = stay %d (cannot move) \n", z);
 	}
 	printf("\n");
-	++turn;
 }
 //1-3 마동석 체력 추가, 마동석 이동 코드
 void intro_stm(void) {
@@ -121,25 +138,26 @@ void intro_stm(void) {
 }
 void m_move(void) {
 	while (1) {
-		printf("madongseok move(0:stay, 1:left)>>");
+		if (m == z + 1) { printf("madongseok move(0: stay)>>"); }
+		else { printf("madongseok move(0:stay, 1:left)>>"); }
 		scanf_s("%d", &m_m);
 		if (m_m == 0 || m_m == 1) { break; }
 	}
 	printf("\n");
+}
+void m_move_print(void){
 	if (m_m == 1) {
+		--m;
 		++m_aggro;
-		if (m_aggro > AGGRO_MAX) { m_aggro = AGGRO_MAX; }
+		if (m_aggro >= AGGRO_MAX) { m_aggro = AGGRO_MAX; }
+		printf("madongseok: stay %d(aggro: %d -> %d, stamina: %d)\n", m, m_aggro - 1, m_aggro, stm);
 	}
 	else {
 		--m_aggro;
-		if (m_aggro < AGGRO_MIN)  { m_aggro = AGGRO_MIN; }
-	}
-}
-void print_m_move(void) {
-	if (m_aggro == 0) {
+		if (m_aggro <= AGGRO_MIN) { m_aggro = AGGRO_MIN; }
 		printf("madongseok: stay %d(aggro: %d -> %d, stamina: %d)\n", m, m_aggro + 1, m_aggro, stm);
 	}
-	else { printf("madongseok: stay %d(aggro: %d -> %d, stamina: %d)\n", m, m_aggro - 1, m_aggro, stm); }
+	printf("\n");
 }
 //1-4 마동석 행동
 void m_action(void) {
@@ -150,27 +168,28 @@ void m_action(void) {
 			if (m_act == 0 || m_act == 1 || m_act == 2) { break; }
 		}
 		printf("\n");
-		if (m_act == 0) {
+	
+	if (m_act == 0) {
 			printf("madongseok rest...\n");
 			--m_aggro;
 			++stm;
-			if (stm > STM_MAX) { stm = STM_MAX; }
-			if (m_aggro < AGGRO_MIN) { m_aggro = AGGRO_MIN; }
+			if (stm >= STM_MAX) { stm = STM_MAX; }
+			if (m_aggro <= AGGRO_MIN) { m_aggro = AGGRO_MIN; }
 			printf("madongseok %d (aggro: %d -> %d, stamina: %d ->%d)\n", m, m_aggro + 1, m_aggro, stm - 1, stm);
-		}
-		else if (m_act == 1) {
+	}
+	else if (m_act == 1) {
 			printf("madongseok provoked zombie...\n");
-			printf("magongseok: %d (aggro: %d -> %d, stamina: %d\n", m, m_aggro, AGGRO_MAX, stm);
+			printf("magongseok: %d (aggro: %d -> %d, stamina: %d)\n", m, m_aggro, AGGRO_MAX, stm);
 			m_aggro = AGGRO_MAX;
-		}
-		else {
+	}
+	else {
 			m_prob = rand() % 100;
 			m_aggro += 2;
 			--stm;
-			if (stm < STM_MIN) {
-
+			if (stm <= STM_MIN) {
+				stm = STM_MIN;
 			}
-			if (m_aggro > AGGRO_MAX) { m_aggro = AGGRO_MAX; }
+			if (m_aggro >= AGGRO_MAX) { m_aggro = AGGRO_MAX; }
 			if (m_prob <= 100 - prob) {
 				printf("madongseok pulled zombie... Next turn, it can't move\n");
 				printf("madongseok: %d(aggro: %d -> %d, stamina: %d -> %d)\n", m, m_aggro - 2, m_aggro, stm + 1, stm);
@@ -181,13 +200,13 @@ void m_action(void) {
 			}
 		}
 	}
-	else {
+	else  {
 		if (m_act == 0) {
 			printf("madongseok rest...\n");
 			--m_aggro;
-			if (m_aggro < AGGRO_MIN) { m_aggro = AGGRO_MIN; }
+			if (m_aggro <= AGGRO_MIN) { m_aggro = AGGRO_MIN; }
 			++stm;
-			if (stm > STM_MAX) { stm = STM_MAX; }
+			if (stm >= STM_MAX) { stm = STM_MAX; }
 			printf("madongseok %d (aggro: %d -> %d, stamina: %d ->%d)\n", m, m_aggro + 1, m_aggro, stm - 1, stm);
 		}
 		else  {
@@ -197,21 +216,23 @@ void m_action(void) {
 		}
 	}
 }
-//1-5 좀비 행동
+//1-5 좀비 행동, 우승 함수
 void z_action(void) {
 	if (c < z) { printf("citizen does nothing.\n"); }
-	if (z == c + 1) { 
-		printf("GAME OVER! citizen dead...\n"); 
+	if (z == c + 1) {
+		printf("GAME OVER! citizen dead...\n");
 		exit(0);
 	}
 	else if (z == c + 1 && z == m - 1) {
 		if (c_aggro < m_aggro) {
 			--stm;
-			if (stm = STM_MIN) {
+			if (stm == STM_MIN) {
 				printf("GMME OVER! madongseok dead...\n");
 				exit(0);
 			}
-			printf("Zombie attaked madongseok. (magongseok stamina: %d -> %d)\n", stm + 1, stm);
+			else {
+				printf("Zombie attaked madongseok. (magongseok stamina: %d -> %d)\n", stm + 1, stm);
+			}
 		}
 		else if (c_aggro == m_aggro) {
 			--stm;
@@ -219,20 +240,42 @@ void z_action(void) {
 				printf("GMME OVER! madongseok dead...\n");
 				exit(0);
 			}
-			printf("Zombie attaked madongseok. (aggro: %d vs %d, magongseok stamina: %d -> %d)\n", c_aggro, m_aggro,  stm + 1, stm);
-		}
-		else {
-			printf("GAME OVER! citizen dead...\n");
-			exit(0);
+			else {
+				printf("Zombie attaked madongseok. (aggro: %d vs %d, magongseok stamina: %d -> %d)\n", c_aggro, m_aggro, stm + 1, stm);
+			}
 		}
 	}
-	else if (z == m - 1) {
+	else  {
 		--stm;
 		if (stm = STM_MIN) {
 			printf("GMME OVER! madongseok dead...\n");
 			exit(0);
 		}
-		printf("Zombie attaked madongseok. (magongseok stamina: %d -> %d)\n", stm + 1, stm);
+		else {
+			printf("Zombie attaked madongseok. (magongseok stamina: %d -> %d)\n", stm + 1, stm);
+		}
 	}
-	else { printf("zombie attacked nobody\n"); }
+}
+void win(void) {
+	if (c == 1) {
+		printf("YOU WIN!");
+		exit(0);
+	}
+}
+int main(void) {
+	intro_len();
+	intro_stm();
+	intro_prob();
+	train();
+	while (1) {
+		cz_move();
+		train();
+		cz_move_print();
+		m_move();
+		train();
+		m_move_print();
+		z_action();
+		m_action();
+		win();
+	}
 }
